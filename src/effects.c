@@ -3136,6 +3136,11 @@ static uint32_t GetHyliaOutputLatency(void)
 ************************************************************************************************************************
 */
 
+void jack_port_connect_callback(jack_port_id_t a, jack_port_id_t b, int connect, void *arg)
+{
+    printf("CALLBACK port %d and %d were %ded.\n", a, b, connect);
+}
+
 int effects_init(void* client)
 {
     /* This global client is for connections / disconnections and midi-learn */
@@ -3475,6 +3480,12 @@ int effects_init(void* client)
 
     /* get transport state */
     UpdateGlobalJackPosition(UPDATE_POSITION_SKIP, false);
+
+    // setup callback function in case ports connected or disconnected by external jack programs
+    if (jack_set_port_connect_callback(g_jack_global_client, jack_port_connect_callback, 0))
+    {
+        fprintf(stderr, "warning: jack_set_port_connect_callback init failed\n");
+    }
 
     /* Try activate the jack global client */
     if (jack_activate(g_jack_global_client) != 0)
